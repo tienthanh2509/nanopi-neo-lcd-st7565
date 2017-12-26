@@ -1,4 +1,4 @@
-# nanopi-neo-lcd-st7565
+# nanopi-neo-lcd-st7565 [![Build Status](https://travis-ci.org/tienthanh2509/nanopi-neo-lcd-st7565.svg?branch=master)](https://travis-ci.org/tienthanh2509/nanopi-neo-lcd-st7565)
 
 Driver for the ST7565 based 128x64 pixel display running on the ARM platform
 
