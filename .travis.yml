@@ -6,7 +6,7 @@ cache:
 
 before_install:
     - sudo apt-get update -qq
-    - sudo apt-get install -y make curl xz-utils
+    - sudo apt-get install -y make aria2 xz-utils
 
 before_script:
     - make download

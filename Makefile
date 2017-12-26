@@ -53,11 +53,13 @@ test:
 download: download_toolchain download_wiringpi
 
 download_toolchain:
-	@echo '-> Fetch linaro toolchain'
 	$Q mkdir -p dl
 	$Q mkdir -p toolchain
-	$Q curl -sfL -C - -o dl/gcc-linaro-x86_64_arm-linux-gnueabihf.tar.xz https://releases.linaro.org/components/toolchain/binaries/latest/arm-linux-gnueabihf/gcc-linaro-$(LINARO_TOOLCHAIN_VERSION)-x86_64_arm-linux-gnueabihf.tar.xz
-	$Q tar xf $(OUTPUT)/gcc-linaro-x86_64_arm-linux-gnueabihf.tar.xz -C toolchain
+
+	@echo '-> Fetch linaro toolchain'
+	$Q aria2c -x8 -c -o dl/gcc-linaro-x86_64_arm-linux-gnueabihf.tar.xz https://releases.linaro.org/components/toolchain/binaries/latest/arm-linux-gnueabihf/gcc-linaro-$(LINARO_TOOLCHAIN_VERSION)-x86_64_arm-linux-gnueabihf.tar.xz
+	@echo '-> Extract toolchain'
+	$Q tar xf dl/gcc-linaro-x86_64_arm-linux-gnueabihf.tar.xz -C toolchain
 
 download_wiringpi:
 	@echo '-> Fetch WiringNP'
