@@ -5,7 +5,9 @@ Driver for the ST7565 based 128x64 pixel display running on the ARM platform
 
 ## Credits
 This library has initially been written by @ladyada adafruit/ST7565-LCD
+
 Thanks to
+
 * Limor "Ladyada" Fried (@ladyada)
 * Daniel Eichhorn (@squix78)
 
