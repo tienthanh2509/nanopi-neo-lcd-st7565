@@ -43,12 +43,12 @@ main: libst7565
 .PHONY: sync
 sync: main
 	@echo '-> push to device'
-	$Q rsync -avz --exclude toolchain ./ root@$(NANOPI_IP_ADDRESS):/root/ST7565
+	$Q rsync -avz --exclude toolchain --exclude dl ./ root@$(NANOPI_IP_ADDRESS):/root/ST7565
 	$Q ssh root@$(NANOPI_IP_ADDRESS) 'cp -f /root/ST7565/out/lib/libst7565.so /usr/lib/libst7565.so'
 
 .PHONY: test
 test:
-	$Q ssh root@$(NANOPI_IP_ADDRESS) '/root/ST7565/main'
+	$Q ssh root@$(NANOPI_IP_ADDRESS) '/root/ST7565/out/main'
 
 download: download_toolchain download_wiringpi
 
