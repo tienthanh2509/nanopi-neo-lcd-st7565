@@ -3,10 +3,13 @@
 #include <cstdint>
 #include <iostream>
 #include <cstring>
+#include <bitset>
 
 // NanoPi Neo WiringPi header
 #include <wiringPi.h>
 #include <wiringShift.h>
+
+#include <wstring/wstring.h>
 
 // Fonts
 #include "DisplayFonts.h"
@@ -35,19 +38,32 @@ using namespace std;
 #define ENABLE_PARTIAL_UPDATE true
 #define ST7565_STARTBYTES 0 // Some LCD set 0, Adafruit LCD set 1
 
+// Fonts Header Values
+#define JUMPTABLE_BYTES 4
+
+#define JUMPTABLE_LSB 1
+#define JUMPTABLE_SIZE 2
+#define JUMPTABLE_WIDTH 3
+#define JUMPTABLE_START 4
+
+#define WIDTH_POS 0
+#define HEIGHT_POS 1
+#define FIRST_CHAR_POS 2
+#define CHAR_NUM_POS 3
+
 enum DISPLAY_COLOR
 {
-  BLACK = 0,
-  WHITE = 1,
-  INVERSE = 2
+    BLACK = 0,
+    WHITE = 1,
+    INVERSE = 2
 };
 
 enum DISPLAY_TEXT_ALIGNMENT
 {
-  TEXT_ALIGN_LEFT = 0,
-  TEXT_ALIGN_RIGHT = 1,
-  TEXT_ALIGN_CENTER = 2,
-  TEXT_ALIGN_CENTER_BOTH = 3
+    TEXT_ALIGN_LEFT = 0,
+    TEXT_ALIGN_RIGHT = 1,
+    TEXT_ALIGN_CENTER = 2,
+    TEXT_ALIGN_CENTER_BOTH = 3
 };
 
 // LCD commands from datasheet
@@ -88,11 +104,11 @@ enum DISPLAY_TEXT_ALIGNMENT
 
 #ifndef _swap_int16_t
 #define _swap_int16_t(a, b) \
-  {                         \
-    int16_t t = a;          \
-    a = b;                  \
-    b = t;                  \
-  }
+    {                       \
+        int16_t t = a;      \
+        a = b;              \
+        b = t;              \
+    }
 #endif
 
 /**
@@ -101,106 +117,143 @@ enum DISPLAY_TEXT_ALIGNMENT
  */
 class ST7565
 {
-protected:
-  uint8_t sid = 0, sclk = 0, cs = 0;
-  uint8_t a0 = 0, rst = 0;
+  protected:
+    uint8_t sid = 0, sclk = 0, cs = 0;
+    uint8_t a0 = 0, rst = 0;
 
-  DISPLAY_TEXT_ALIGNMENT textAlignment = TEXT_ALIGN_LEFT;
-  DISPLAY_COLOR color = BLACK;
+    DISPLAY_TEXT_ALIGNMENT textAlignment = TEXT_ALIGN_LEFT;
+    DISPLAY_COLOR color = BLACK;
 
-  const char *fontData = ArialMT_Plain_10;
+    const char *fontData = ArialMT_Plain_10;
 
 #ifdef ENABLE_PARTIAL_UPDATE
-  int16_t xUpdateMin, xUpdateMax, yUpdateMin, yUpdateMax;
+    int16_t xUpdateMin, xUpdateMax, yUpdateMin, yUpdateMax;
 #endif
 
-  // the memory buffer for the LCD
-  uint8_t *buffer = (uint8_t *)malloc(sizeof(uint8_t) * DISPLAY_BUFFER_SIZE);
+    // the memory buffer for the LCD
+    uint8_t *buffer = (uint8_t *)malloc(sizeof(uint8_t) * DISPLAY_BUFFER_SIZE);
 
-  void init(void);
-  void sendInitCommands(void);
-  void sendCommand(uint8_t c);
-  void sendData(uint8_t c);
-  void spiWrite(uint8_t c);
+    void init(void);
+    void sendInitCommands(void);
+    void sendCommand(uint8_t c);
+    void sendData(uint8_t c);
+    void spiWrite(uint8_t c);
 
-  void updateBoundingBox(int16_t xmin, int16_t ymin, int16_t xmax, int16_t ymax);
+    // Draw a pixel at given position
+    void setPixelInternal(int16_t x, int16_t y);
+    void updateBoundingBox(int16_t xmin, int16_t ymin, int16_t xmax, int16_t ymax);
 
-public:
-  ST7565(uint8_t rst, uint8_t sclk, uint8_t a0, uint8_t sid, uint8_t cs);
+    void inline drawInternal(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *data, uint16_t offset, uint16_t bytesInData) __attribute__((always_inline));
 
-  void config(uint8_t contrast, bool negative, bool rotation, bool mirror, uint8_t resistor_ratio);
+    void drawStringInternal(int16_t xMove, int16_t yMove, char *text, uint16_t textLength, uint16_t textWidth);
 
-  // Write the buffer to the display memory
-  void display(void);
+    // converts utf8 characters to extended ascii
+    static char *utf8ascii(string s);
+    static uint8_t utf8ascii(uint8_t ascii);
 
-  // Clear the local pixel buffer
-  void clear(void);
+  public:
+    ST7565(uint8_t rst, uint8_t sclk, uint8_t a0, uint8_t sid, uint8_t cs);
 
-  // This doesnt touch the buffer, just clears the display RAM - might be handy
-  void clearDisplay(void);
+    void config(uint8_t contrast, bool negative, bool rotation, bool mirror, uint8_t resistor_ratio);
 
-  /* Display functions */
+    // Write the buffer to the display memory
+    void display(void);
 
-  // Turn the display on
-  void displayOn(void);
+    // Clear the local pixel buffer
+    void clear(void);
 
-  // Turn the display offs
-  void displayOff(void);
+    // This doesnt touch the buffer, just clears the display RAM - might be handy
+    void clearDisplay(void);
 
-  // Inverted display mode
-  void invertDisplay(void);
+    /* Display functions */
 
-  // Normal display mode
-  void normalDisplay(void);
+    // Turn the display on
+    void displayOn(void);
 
-  // Set display contrast
-  void setContrast(uint8_t contrast);
+    // Turn the display offs
+    void displayOff(void);
 
-  // Turn the display upside down
-  void flipScreenVertically();
+    // Inverted display mode
+    void invertDisplay(void);
 
-  /* Drawing functions */
-  // Sets the color of all pixel operations
-  void setColor(DISPLAY_COLOR color);
+    // Normal display mode
+    void normalDisplay(void);
 
-  // Draw a pixel at given position
-  void setPixel(int16_t x, int16_t y);
-  // Get a pixel at given position
-  uint8_t getPixel(int16_t x, int16_t y);
+    // Set display contrast
+    void setContrast(uint8_t contrast);
 
-  // Draw a line from position 0 to position 1
-  void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1);
+    // Turn the display upside down
+    void flipScreenVertically();
 
-  // Draw the border of a rectangle at the given location
-  void drawRect(int16_t x, int16_t y, int16_t width, int16_t height);
+    /* Drawing functions */
 
-  // Fill the rectangle
-  void fillRect(int16_t x, int16_t y, int16_t width, int16_t height);
+    // Sets the color of all pixel operations
+    void setColor(DISPLAY_COLOR color);
 
-  // Draw the border of a circle
-  void drawCircle(int16_t x, int16_t y, int16_t radius);
+    // Draw a pixel at given position
+    void setPixel(int16_t x, int16_t y);
+    // Get a pixel at given position
+    uint8_t getPixel(int16_t x, int16_t y);
 
-  // Draw all Quadrants specified in the quads bit mask
-  void drawCircleQuads(int16_t x0, int16_t y0, int16_t radius, uint8_t quads);
+    // Draw a line from position 0 to position 1
+    void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1);
 
-  // Fill circle
-  void fillCircle(int16_t x, int16_t y, int16_t radius);
+    // Draw the border of a rectangle at the given location
+    void drawRect(int16_t x, int16_t y, int16_t width, int16_t height);
 
-  // Draw a line horizontally
-  void drawHorizontalLine(int16_t x, int16_t y, int16_t length);
+    // Fill the rectangle
+    void fillRect(int16_t x, int16_t y, int16_t width, int16_t height);
 
-  // Draw a lin vertically
-  void drawVerticalLine(int16_t x, int16_t y, int16_t length);
+    // Draw the border of a circle
+    void drawCircle(int16_t x, int16_t y, int16_t radius);
 
-  // Draws a rounded progress bar with the outer dimensions given by width and height. Progress is
-  // a unsigned byte value between 0 and 100
-  void drawProgressBar(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t progress);
+    // Draw all Quadrants specified in the quads bit mask
+    void drawCircleQuads(int16_t x0, int16_t y0, int16_t radius, uint8_t quads);
 
-  // Draw a bitmap in the internal image format
-  void drawFastImage(int16_t x, int16_t y, int16_t width, int16_t height, const char *image);
+    // Fill circle
+    void fillCircle(int16_t x, int16_t y, int16_t radius);
 
-  // Draw a XBM
-  void drawXbm(int16_t x, int16_t y, int16_t width, int16_t height, const char *xbm);
+    // Draw a line horizontally
+    void drawHorizontalLine(int16_t x, int16_t y, int16_t length);
+
+    // Draw a lin vertically
+    void drawVerticalLine(int16_t x, int16_t y, int16_t length);
+
+    // Draws a rounded progress bar with the outer dimensions given by width and height. Progress is
+    // a unsigned byte value between 0 and 100
+    void drawProgressBar(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t progress);
+
+    // Draw a bitmap in the internal image format
+    void drawFastImage(int16_t x, int16_t y, int16_t width, int16_t height, const char *image);
+
+    // Draw a XBM
+    void drawXbm(int16_t x, int16_t y, int16_t width, int16_t height, const char *xbm);
+
+    /* Text functions */
+    
+    // Draws a string at the given location
+    void drawString(int16_t x, int16_t y, String text);
+
+    // Draws a String with a maximum width at the given location.
+    // If the given String is wider than the specified width
+    // The text will be wrapped to the next line at a space or dash
+    void drawStringMaxWidth(int16_t x, int16_t y, uint16_t maxLineWidth, String text);
+
+    // Returns the width of the const char* with the current
+    // font settings
+    uint16_t getStringWidth(const char *text, uint16_t length);
+
+    // Convencience method for the const char version
+    uint16_t getStringWidth(String text);
+
+    // Specifies relative to which anchor point
+    // the text is rendered. Available constants:
+    // TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER_BOTH
+    void setTextAlignment(DISPLAY_TEXT_ALIGNMENT textAlignment);
+
+    // Sets the current font. Available default fonts
+    // ArialMT_Plain_10, ArialMT_Plain_16, ArialMT_Plain_24
+    void setFont(const char *fontData);
 };
 
 #endif
