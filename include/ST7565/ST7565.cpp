@@ -366,6 +366,106 @@ void ST7565::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1)
   }
 }
 
+void ST7565::drawRect(int16_t x, int16_t y, int16_t width, int16_t height) {
+  drawHorizontalLine(x, y, width);
+  drawVerticalLine(x, y, height);
+  drawVerticalLine(x + width - 1, y, height);
+  drawHorizontalLine(x, y + height - 1, width);
+}
+
+void ST7565::fillRect(int16_t xMove, int16_t yMove, int16_t width, int16_t height) {
+  for (int16_t x = xMove; x < xMove + width; x++) {
+    drawVerticalLine(x, yMove, height);
+  }
+}
+
+void ST7565::drawCircle(int16_t x0, int16_t y0, int16_t radius) {
+  int16_t x = 0, y = radius;
+	int16_t dp = 1 - radius;
+	do {
+		if (dp < 0)
+			dp = dp + 2 * (++x) + 3;
+		else
+			dp = dp + 2 * (++x) - 2 * (--y) + 5;
+
+		setPixel(x0 + x, y0 + y);     //For the 8 octants
+		setPixel(x0 - x, y0 + y);
+		setPixel(x0 + x, y0 - y);
+		setPixel(x0 - x, y0 - y);
+		setPixel(x0 + y, y0 + x);
+		setPixel(x0 - y, y0 + x);
+		setPixel(x0 + y, y0 - x);
+		setPixel(x0 - y, y0 - x);
+
+	} while (x < y);
+
+  setPixel(x0 + radius, y0);
+  setPixel(x0, y0 + radius);
+  setPixel(x0 - radius, y0);
+  setPixel(x0, y0 - radius);
+}
+
+void ST7565::drawCircleQuads(int16_t x0, int16_t y0, int16_t radius, uint8_t quads) {
+  int16_t x = 0, y = radius;
+  int16_t dp = 1 - radius;
+  while (x < y) {
+    if (dp < 0)
+      dp = dp + 2 * (++x) + 3;
+    else
+      dp = dp + 2 * (++x) - 2 * (--y) + 5;
+    if (quads & 0x1) {
+      setPixel(x0 + x, y0 - y);
+      setPixel(x0 + y, y0 - x);
+    }
+    if (quads & 0x2) {
+      setPixel(x0 - y, y0 - x);
+      setPixel(x0 - x, y0 - y);
+    }
+    if (quads & 0x4) {
+      setPixel(x0 - y, y0 + x);
+      setPixel(x0 - x, y0 + y);
+    }
+    if (quads & 0x8) {
+      setPixel(x0 + x, y0 + y);
+      setPixel(x0 + y, y0 + x);
+    }
+  }
+  if (quads & 0x1 && quads & 0x8) {
+    setPixel(x0 + radius, y0);
+  }
+  if (quads & 0x4 && quads & 0x8) {
+    setPixel(x0, y0 + radius);
+  }
+  if (quads & 0x2 && quads & 0x4) {
+    setPixel(x0 - radius, y0);
+  }
+  if (quads & 0x1 && quads & 0x2) {
+    setPixel(x0, y0 - radius);
+  }
+}
+
+
+void ST7565::fillCircle(int16_t x0, int16_t y0, int16_t radius) {
+  int16_t x = 0, y = radius;
+	int16_t dp = 1 - radius;
+	do {
+		if (dp < 0)
+			dp = dp + 2 * (++x) + 3;
+		else
+			dp = dp + 2 * (++x) - 2 * (--y) + 5;
+
+    drawHorizontalLine(x0 - x, y0 - y, 2*x);
+    drawHorizontalLine(x0 - x, y0 + y, 2*x);
+    drawHorizontalLine(x0 - y, y0 - x, 2*y);
+    drawHorizontalLine(x0 - y, y0 + x, 2*y);
+
+
+	} while (x < y);
+  drawHorizontalLine(x0 - radius, y0, 2 * radius);
+
+}
+
+
 void ST7565::drawHorizontalLine(int16_t x, int16_t y, int16_t length)
 {
   if (y < 0 || y >= DISPLAY_HEIGHT)
@@ -440,8 +540,8 @@ void ST7565::drawVerticalLine(int16_t x, int16_t y, int16_t length)
   if (length <= 0)
     return;
 
-  // updateBoundingBox(x, y, x, y + length);
-  updateBoundingBox(0, 0, DISPLAY_WIDTH_MAX, DISPLAY_HEIGHT_MAX);
+  updateBoundingBox(x, y, x, y + length);
+  // updateBoundingBox(0, 0, DISPLAY_WIDTH_MAX, DISPLAY_HEIGHT_MAX);
 
   uint8_t yOffset = y & 7;
   uint8_t drawBit;
@@ -485,7 +585,7 @@ void ST7565::drawVerticalLine(int16_t x, int16_t y, int16_t length)
     bufferPtr += DISPLAY_WIDTH;
   }
 
-  uint8_t old_lenght = length;
+  // uint8_t old_lenght = length;
   if (length >= 8)
   {
     // cout << "\tC2 Draw " << (int)y + yOffset - 1 << " to " << (int)y + yOffset - 1 + old_lenght << endl;
