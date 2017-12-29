@@ -420,3 +420,115 @@ void ST7565::drawHorizontalLine(int16_t x, int16_t y, int16_t length)
     break;
   }
 }
+
+void ST7565::drawVerticalLine(int16_t x, int16_t y, int16_t length)
+{
+  if (x < 0 || x >= DISPLAY_WIDTH)
+    return;
+
+  if (y < 0)
+  {
+    length += y;
+    y = 0;
+  }
+
+  if ((y + length) > DISPLAY_HEIGHT)
+  {
+    length = (DISPLAY_HEIGHT - y);
+  }
+
+  if (length <= 0)
+    return;
+
+  // updateBoundingBox(x, y, x, y + length);
+  updateBoundingBox(0, 0, DISPLAY_WIDTH_MAX, DISPLAY_HEIGHT_MAX);
+
+  uint8_t yOffset = y & 7;
+  uint8_t drawBit;
+  uint8_t *bufferPtr = buffer;
+
+  bufferPtr += (y >> 3) * DISPLAY_WIDTH;
+  bufferPtr += x;
+
+  // cout << x << "," << y << " => " << x << "," << y + length << ", L = " << length << endl;
+  // cout << "\tyOffset: " << (int)yOffset << " " << bitset<8>(yOffset) << endl;
+  if (yOffset)
+  {
+    yOffset = 8 - yOffset;
+    drawBit = ~(0xFF << (yOffset));
+
+    if (length < yOffset)
+    {
+      drawBit &= (0xFF >> (yOffset - length));
+    }
+
+    // cout << "\tC1 Draw " << y << " to " << (int)y + yOffset - 1 << endl;
+    // cout << "\t\tdrawBit: " << bitset<8>(drawBit) << endl;
+
+    switch (color)
+    {
+    case WHITE:
+      *bufferPtr &= ~drawBit;
+      break;
+    case BLACK:
+      *bufferPtr |= drawBit;
+      break;
+    case INVERSE:
+      *bufferPtr ^= drawBit;
+      break;
+    }
+
+    if (length < yOffset)
+      return;
+
+    length -= yOffset;
+    bufferPtr += DISPLAY_WIDTH;
+  }
+
+  uint8_t old_lenght = length;
+  if (length >= 8)
+  {
+    // cout << "\tC2 Draw " << (int)y + yOffset - 1 << " to " << (int)y + yOffset - 1 + old_lenght << endl;
+    switch (color)
+    {
+    case WHITE:
+    case BLACK:
+      drawBit = (color == BLACK) ? 0xFF : 0x00;
+      do
+      {
+        // cout << "\t\tdrawBit: " << bitset<8>(drawBit) << endl;
+        *bufferPtr = drawBit;
+        bufferPtr += DISPLAY_WIDTH;
+        length -= 8;
+      } while (length >= 8);
+      break;
+    case INVERSE:
+      do
+      {
+        *bufferPtr = ~(*bufferPtr);
+        bufferPtr += DISPLAY_WIDTH;
+        length -= 8;
+      } while (length >= 8);
+      break;
+    }
+  }
+
+  // cout << "\tC3 Draw " << y + yOffset + old_lenght << " to " << (int)y + yOffset + old_lenght + length << endl;
+  if (length > 0)
+  {
+    drawBit = 0xFF << (8 - length);
+    // cout << "\t\tdrawBit: " << (int)drawBit << " " << bitset<8>(drawBit) << endl;
+    switch (color)
+    {
+    case WHITE:
+      *bufferPtr &= ~drawBit;
+      break;
+    case BLACK:
+      *bufferPtr |= drawBit;
+      break;
+    case INVERSE:
+      *bufferPtr ^= drawBit;
+      break;
+    }
+  }
+}
