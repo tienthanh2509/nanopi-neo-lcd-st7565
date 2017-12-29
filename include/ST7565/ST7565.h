@@ -230,7 +230,7 @@ class ST7565
     void drawXbm(int16_t x, int16_t y, int16_t width, int16_t height, const char *xbm);
 
     /* Text functions */
-    
+
     // Draws a string at the given location
     void drawString(int16_t x, int16_t y, String text);
 

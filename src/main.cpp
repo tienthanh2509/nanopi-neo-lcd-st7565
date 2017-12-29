@@ -11,6 +11,121 @@ using namespace std;
 // pin 05 - LCD chip select (CS)
 ST7565 *lcd = new ST7565(11, 23, 13, 19, 24);
 
+void drawLines()
+{
+	for (int16_t i = 0; i < DISPLAY_WIDTH; i += 4)
+	{
+		lcd->drawLine(0, 0, i, DISPLAY_HEIGHT - 1);
+		lcd->display();
+		delay(10);
+	}
+	for (int16_t i = 0; i < DISPLAY_HEIGHT; i += 4)
+	{
+		lcd->drawLine(0, 0, DISPLAY_WIDTH - 1, i);
+		lcd->display();
+		delay(10);
+	}
+	delay(250);
+
+	lcd->clear();
+	for (int16_t i = 0; i < DISPLAY_WIDTH; i += 4)
+	{
+		lcd->drawLine(0, DISPLAY_HEIGHT - 1, i, 0);
+		lcd->display();
+		delay(10);
+	}
+	for (int16_t i = DISPLAY_HEIGHT - 1; i >= 0; i -= 4)
+	{
+		lcd->drawLine(0, DISPLAY_HEIGHT - 1, DISPLAY_WIDTH - 1, i);
+		lcd->display();
+		delay(10);
+	}
+	delay(250);
+
+	lcd->clear();
+	for (int16_t i = DISPLAY_WIDTH - 1; i >= 0; i -= 4)
+	{
+		lcd->drawLine(DISPLAY_WIDTH - 1, DISPLAY_HEIGHT - 1, i, 0);
+		lcd->display();
+		delay(10);
+	}
+	for (int16_t i = DISPLAY_HEIGHT - 1; i >= 0; i -= 4)
+	{
+		lcd->drawLine(DISPLAY_WIDTH - 1, DISPLAY_HEIGHT - 1, 0, i);
+		lcd->display();
+		delay(10);
+	}
+	delay(250);
+	lcd->clear();
+	for (int16_t i = 0; i < DISPLAY_HEIGHT; i += 4)
+	{
+		lcd->drawLine(DISPLAY_WIDTH - 1, 0, 0, i);
+		lcd->display();
+		delay(10);
+	}
+	for (int16_t i = 0; i < DISPLAY_WIDTH; i += 4)
+	{
+		lcd->drawLine(DISPLAY_WIDTH - 1, 0, i, DISPLAY_HEIGHT - 1);
+		lcd->display();
+		delay(10);
+	}
+	delay(250);
+}
+
+void drawRect(void)
+{
+	for (int16_t i = 0; i < DISPLAY_HEIGHT / 2; i += 2)
+	{
+		lcd->drawRect(i, i, DISPLAY_WIDTH - 2 * i, DISPLAY_HEIGHT - 2 * i);
+		lcd->display();
+		delay(10);
+	}
+}
+
+void fillRect(void)
+{
+	uint8_t color = 1;
+	for (int16_t i = 0; i < DISPLAY_HEIGHT / 2; i += 3)
+	{
+		lcd->setColor((color % 2 == 0) ? BLACK : WHITE); // alternate colors
+		lcd->fillRect(i, i, DISPLAY_WIDTH - i * 2, DISPLAY_HEIGHT - i * 2);
+		lcd->display();
+		delay(10);
+		color++;
+	}
+}
+
+void drawCircle(void)
+{
+	for (int16_t i = 0; i < DISPLAY_HEIGHT; i += 2)
+	{
+		lcd->clear();
+		lcd->drawCircle(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2, i);
+		lcd->display();
+		delay(100);
+	}
+	delay(1000);
+	lcd->clear();
+
+	// This will draw the part of the circel in quadrant 1
+	// Quadrants are numberd like this:
+	//   0010 | 0001
+	//  ------|-----
+	//   0100 | 1000
+	//
+	lcd->drawCircleQuads(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2, DISPLAY_HEIGHT / 4, 0b00000001);
+	lcd->display();
+	delay(200);
+	lcd->drawCircleQuads(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2, DISPLAY_HEIGHT / 4, 0b00000011);
+	lcd->display();
+	delay(200);
+	lcd->drawCircleQuads(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2, DISPLAY_HEIGHT / 4, 0b00000111);
+	lcd->display();
+	delay(200);
+	lcd->drawCircleQuads(DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 2, DISPLAY_HEIGHT / 4, 0b00001111);
+	lcd->display();
+}
+
 int main()
 {
 	lcd->config(22, 0, 0, 0, 4);
@@ -18,51 +133,23 @@ int main()
 	lcd->display();
 	lcd->displayOn();
 
-	// lcd->setColor(BLACK);
-	// for (int i = 0; i < 64; i++)
-	// {
-	// 	for (int j = 0; j < 128; j++)
-	// 	{
-	// 		lcd->setPixel(j, i);
-	// 		lcd->display();
-	// 		delay(1);
-	// 	}
-	// }
-	// lcd->display();
+	// lcd->flipScreenVertically();
 
-	// delay(1000);
+	// lcd->setContrast(20);
 
-	// lcd->setColor(WHITE);
-	// for (int i = 0; i < 64; i += 10)
-	// {
-	// 	for (int j = 0; j < 128; j += 10)
-	// 	{
-	// 		lcd->setPixel(j, i);
-	// 	}
-	// }
-	// lcd->display();
+	drawCircle();
+	delay(1000);
+	lcd->clear();
 
-	// delay(1000);
+	drawLines();
+	delay(1000);
+	lcd->clear();
 
-	// lcd->setColor(INVERSE);
-	// for (int i = 0; i < 64; i++)
-	// {
-	// 	for (int j = 0; j < 128; j++)
-	// 	{
-	// 		lcd->setPixel(j, i);
-	// 	}
-	// }
-	// lcd->display();
+	drawRect();
+	delay(1000);
+	lcd->clear();
 
-	lcd->setColor(BLACK);
-	for (int j = 0; j < 64; j++)
-	{
-		lcd->drawHorizontalLine(30, j, 30);
-		// lcd->drawHorizontalLine(0, 7, 128);
-		// lcd->drawHorizontalLine(0, 14, 128);
-		// lcd->drawHorizontalLine(0, 8, 128);
-		// lcd->drawHorizontalLine(0, 63, 128);
-		lcd->display();
-		delay(10);
-	}
+	fillRect();
+	delay(1000);
+	lcd->clear();
 }

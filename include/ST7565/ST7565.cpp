@@ -366,38 +366,43 @@ void ST7565::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1)
   }
 }
 
-void ST7565::drawRect(int16_t x, int16_t y, int16_t width, int16_t height) {
+void ST7565::drawRect(int16_t x, int16_t y, int16_t width, int16_t height)
+{
   drawHorizontalLine(x, y, width);
   drawVerticalLine(x, y, height);
   drawVerticalLine(x + width - 1, y, height);
   drawHorizontalLine(x, y + height - 1, width);
 }
 
-void ST7565::fillRect(int16_t xMove, int16_t yMove, int16_t width, int16_t height) {
-  for (int16_t x = xMove; x < xMove + width; x++) {
+void ST7565::fillRect(int16_t xMove, int16_t yMove, int16_t width, int16_t height)
+{
+  for (int16_t x = xMove; x < xMove + width; x++)
+  {
     drawVerticalLine(x, yMove, height);
   }
 }
 
-void ST7565::drawCircle(int16_t x0, int16_t y0, int16_t radius) {
+void ST7565::drawCircle(int16_t x0, int16_t y0, int16_t radius)
+{
   int16_t x = 0, y = radius;
-	int16_t dp = 1 - radius;
-	do {
-		if (dp < 0)
-			dp = dp + 2 * (++x) + 3;
-		else
-			dp = dp + 2 * (++x) - 2 * (--y) + 5;
+  int16_t dp = 1 - radius;
+  do
+  {
+    if (dp < 0)
+      dp = dp + 2 * (++x) + 3;
+    else
+      dp = dp + 2 * (++x) - 2 * (--y) + 5;
 
-		setPixel(x0 + x, y0 + y);     //For the 8 octants
-		setPixel(x0 - x, y0 + y);
-		setPixel(x0 + x, y0 - y);
-		setPixel(x0 - x, y0 - y);
-		setPixel(x0 + y, y0 + x);
-		setPixel(x0 - y, y0 + x);
-		setPixel(x0 + y, y0 - x);
-		setPixel(x0 - y, y0 - x);
+    setPixel(x0 + x, y0 + y); //For the 8 octants
+    setPixel(x0 - x, y0 + y);
+    setPixel(x0 + x, y0 - y);
+    setPixel(x0 - x, y0 - y);
+    setPixel(x0 + y, y0 + x);
+    setPixel(x0 - y, y0 + x);
+    setPixel(x0 + y, y0 - x);
+    setPixel(x0 - y, y0 - x);
 
-	} while (x < y);
+  } while (x < y);
 
   setPixel(x0 + radius, y0);
   setPixel(x0, y0 + radius);
@@ -405,66 +410,74 @@ void ST7565::drawCircle(int16_t x0, int16_t y0, int16_t radius) {
   setPixel(x0, y0 - radius);
 }
 
-void ST7565::drawCircleQuads(int16_t x0, int16_t y0, int16_t radius, uint8_t quads) {
+void ST7565::drawCircleQuads(int16_t x0, int16_t y0, int16_t radius, uint8_t quads)
+{
   int16_t x = 0, y = radius;
   int16_t dp = 1 - radius;
-  while (x < y) {
+  while (x < y)
+  {
     if (dp < 0)
       dp = dp + 2 * (++x) + 3;
     else
       dp = dp + 2 * (++x) - 2 * (--y) + 5;
-    if (quads & 0x1) {
+    if (quads & 0x1)
+    {
       setPixel(x0 + x, y0 - y);
       setPixel(x0 + y, y0 - x);
     }
-    if (quads & 0x2) {
+    if (quads & 0x2)
+    {
       setPixel(x0 - y, y0 - x);
       setPixel(x0 - x, y0 - y);
     }
-    if (quads & 0x4) {
+    if (quads & 0x4)
+    {
       setPixel(x0 - y, y0 + x);
       setPixel(x0 - x, y0 + y);
     }
-    if (quads & 0x8) {
+    if (quads & 0x8)
+    {
       setPixel(x0 + x, y0 + y);
       setPixel(x0 + y, y0 + x);
     }
   }
-  if (quads & 0x1 && quads & 0x8) {
+  if (quads & 0x1 && quads & 0x8)
+  {
     setPixel(x0 + radius, y0);
   }
-  if (quads & 0x4 && quads & 0x8) {
+  if (quads & 0x4 && quads & 0x8)
+  {
     setPixel(x0, y0 + radius);
   }
-  if (quads & 0x2 && quads & 0x4) {
+  if (quads & 0x2 && quads & 0x4)
+  {
     setPixel(x0 - radius, y0);
   }
-  if (quads & 0x1 && quads & 0x2) {
+  if (quads & 0x1 && quads & 0x2)
+  {
     setPixel(x0, y0 - radius);
   }
 }
 
-
-void ST7565::fillCircle(int16_t x0, int16_t y0, int16_t radius) {
+void ST7565::fillCircle(int16_t x0, int16_t y0, int16_t radius)
+{
   int16_t x = 0, y = radius;
-	int16_t dp = 1 - radius;
-	do {
-		if (dp < 0)
-			dp = dp + 2 * (++x) + 3;
-		else
-			dp = dp + 2 * (++x) - 2 * (--y) + 5;
+  int16_t dp = 1 - radius;
+  do
+  {
+    if (dp < 0)
+      dp = dp + 2 * (++x) + 3;
+    else
+      dp = dp + 2 * (++x) - 2 * (--y) + 5;
 
-    drawHorizontalLine(x0 - x, y0 - y, 2*x);
-    drawHorizontalLine(x0 - x, y0 + y, 2*x);
-    drawHorizontalLine(x0 - y, y0 - x, 2*y);
-    drawHorizontalLine(x0 - y, y0 + x, 2*y);
+    drawHorizontalLine(x0 - x, y0 - y, 2 * x);
+    drawHorizontalLine(x0 - x, y0 + y, 2 * x);
+    drawHorizontalLine(x0 - y, y0 - x, 2 * y);
+    drawHorizontalLine(x0 - y, y0 + x, 2 * y);
 
-
-	} while (x < y);
+  } while (x < y);
   drawHorizontalLine(x0 - radius, y0, 2 * radius);
-
 }
-
 
 void ST7565::drawHorizontalLine(int16_t x, int16_t y, int16_t length)
 {
