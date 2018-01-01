@@ -645,3 +645,54 @@ void ST7565::drawVerticalLine(int16_t x, int16_t y, int16_t length)
     }
   }
 }
+
+void ST7565::drawProgressBar(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t progress)
+{
+  uint16_t radius = height / 2;
+  uint16_t xRadius = x + radius;
+  uint16_t yRadius = y + radius;
+  uint16_t doubleRadius = 2 * radius;
+  uint16_t innerRadius = radius - 2;
+
+  drawCircleQuads(xRadius, yRadius, radius, 0b00000110);
+  drawHorizontalLine(xRadius, y, width - doubleRadius + 1);
+  drawHorizontalLine(xRadius, y + height, width - doubleRadius + 1);
+  drawCircleQuads(x + width - radius, yRadius, radius, 0b00001001);
+
+  uint16_t maxProgressWidth = (width - doubleRadius - 1) * progress / 100;
+
+  fillCircle(xRadius, yRadius, innerRadius);
+  fillRect(xRadius + 1, y + 2, maxProgressWidth, height - 3);
+  fillCircle(xRadius + maxProgressWidth, yRadius, innerRadius);
+}
+
+// void ST7565::drawFastImage(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *image)
+// {
+//   drawInternal(xMove, yMove, width, height, image, 0, 0);
+// }
+
+void ST7565::drawXbm(int16_t xMove, int16_t yMove, int16_t width, int16_t height, const char *xbm)
+{
+  int16_t widthInXbm = (width + 7) / 8;
+  uint8_t data = 0;
+
+  for (int16_t y = 0; y < height; y++)
+  {
+    for (int16_t x = 0; x < width; x++)
+    {
+      if (x & 7)
+      {
+        data >>= 1; // Move a bit
+      }
+      else
+      { // Read new data every 8 bit
+        data = pgm_read_byte(xbm + (x / 8) + y * widthInXbm);
+      }
+      // if there is a bit draw it
+      if (data & 0x01)
+      {
+        setPixel(xMove + x, yMove + y);
+      }
+    }
+  }
+}
