@@ -9,7 +9,7 @@
 #include <wiringPi.h>
 #include <wiringShift.h>
 
-#include <wstring/wstring.h>
+#include <Arduino.h>
 
 // Fonts
 #include "DisplayFonts.h"
