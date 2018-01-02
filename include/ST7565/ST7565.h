@@ -2,13 +2,13 @@
 #define __ST7565__
 #include <cstdint>
 #include <iostream>
-#include <cstring>
 #include <bitset>
 
 // NanoPi Neo WiringPi header
 #include <wiringPi.h>
 #include <wiringShift.h>
 
+// Arduino Wrapper
 #include <Arduino.h>
 
 // Fonts
@@ -148,7 +148,7 @@ class ST7565
     void drawStringInternal(int16_t xMove, int16_t yMove, char *text, uint16_t textLength, uint16_t textWidth);
 
     // converts utf8 characters to extended ascii
-    static char *utf8ascii(string s);
+    static char *utf8ascii(String s);
     static uint8_t utf8ascii(uint8_t ascii);
 
   public:

@@ -1,3 +1,6 @@
 dl/
 out/
 toolchain/
+*.o
+*.a
+libst7565.so

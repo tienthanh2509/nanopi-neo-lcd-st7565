@@ -4,6 +4,26 @@
 
 using namespace std;
 
+const char activeSymbol[] PROGMEM = {
+	0b00000000,
+	0b00000000,
+	0b00011000,
+	0b00100100,
+	0b01000010,
+	0b01000010,
+	0b00100100,
+	0b00011000};
+
+const char inactiveSymbol[] PROGMEM = {
+	0b00000000,
+	0b00000000,
+	0b00000000,
+	0b00000000,
+	0b00011000,
+	0b00011000,
+	0b00000000,
+	0b00000000};
+
 // pin 11 - LCD reset (RST)
 // pin 23 - Serial clock out (SCLK)
 // pin 13 - Data/Command select (RS or A0)
@@ -133,23 +153,32 @@ int main()
 	lcd->display();
 	lcd->displayOn();
 
+	lcd->setTextAlignment(TEXT_ALIGN_LEFT);
+    lcd->setFont(ArialMT_Plain_10);
+    lcd->drawString(0, 0, "Hello world");
+    lcd->setFont(ArialMT_Plain_16);
+    lcd->drawString(0, 10, "Hello world");
+    lcd->setFont(ArialMT_Plain_24);
+    lcd->drawString(0, 26, "Hello world");
+	lcd->display();
+
 	// lcd->flipScreenVertically();
 
 	// lcd->setContrast(20);
 
-	drawCircle();
-	delay(1000);
-	lcd->clear();
+	// drawCircle();
+	// delay(1000);
+	// lcd->clear();
 
-	drawLines();
-	delay(1000);
-	lcd->clear();
+	// drawLines();
+	// delay(1000);
+	// lcd->clear();
 
-	drawRect();
-	delay(1000);
-	lcd->clear();
+	// drawRect();
+	// delay(1000);
+	// lcd->clear();
 
-	fillRect();
-	delay(1000);
-	lcd->clear();
+	// fillRect();
+	// delay(1000);
+	// lcd->clear();
 }
